@@ -1,10 +1,12 @@
 import requests
 import json
 
+
 class Base(object):
     _url = ''
     _user = ''
     _password = ''
+
     def __init__(self, url=None, user=None, password=None):
         self._url = url
         self._user = user
@@ -26,6 +28,10 @@ class Base(object):
     def _post(self, url, payload):
         resp = requests.post(url, auth=self._auth, headers=self._headers, data=json.dumps(payload))
         return resp.json()
+
+    def _delete(self, url):
+        requests.delete(url, auth=self._auth)
+
 
 class Entry(Base):
     _annotation_url = ''
@@ -75,4 +81,19 @@ class Entry(Base):
         """
 
         for annotation in annotations:
-            resp = self._post(self._annotation_url, {"annotation": annotation})
+            self._post(self._annotation_url, {"annotation": annotation})
+
+    def delete_annotation(self, annotation=dict()):
+        """Remove an annotation from an entry.
+        Args:
+            annotation: the annotation to be removed
+        """
+
+        annotations = self.annotations()
+        for aAnnotation in annotations:
+            if (aAnnotation['source'] == annotation['source'] and
+                    aAnnotation['key'] == annotation['key'] and
+                    aAnnotation['value'] == annotation['value']):
+
+                self._delete(aAnnotation['self'])
+                break
